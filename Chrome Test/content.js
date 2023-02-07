@@ -1,7 +1,3 @@
-/*var script = document.createElement("script");
-script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@v2.0.0-beta.2/dist/tesseract.min.js";
-document.head.appendChild(script);*/
-
 var isAltDown = false;
 var rectangleDiv = null;
 
@@ -63,19 +59,6 @@ document.addEventListener("mousedown", function(event) {
           var width = Math.abs(endX - startX);
           console.log("top:", top, "left:", left, "height:", height, "width:", width);
 
-          /*chrome.tabs.captureVisibleTab({format: "png"}, function(screenshotUrl) {
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
-
-            const image = new Image();
-            image.src = screenshotUrl;
-
-            image.onload = function() {
-              canvas.width = width;
-              canvas.height = height;
-              context.drawImage(image, left, top, width, height, 0, 0, width, height);
-              yo = canvas.toDataURL()
-            };*/
           const image = new Image()
 
           chrome.runtime.sendMessage({
@@ -97,14 +80,12 @@ document.addEventListener("mousedown", function(event) {
 
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d");
-          var yo;
 
           image.onload = function() {
             canvas.width = width;
             canvas.height = height;
             context.drawImage(image, left, top, width, height, 0, 0, width, height);
             yo = canvas.toDataURL()
-            console.log(yo);
 
             console.log('%c ','font-size: 300px; background: url(' + canvas.toDataURL() + ') no-repeat;');
 
@@ -114,34 +95,13 @@ document.addEventListener("mousedown", function(event) {
             document.body.appendChild(link);*/
           };
 
-          //console.log(yo);
-
-
-          //var image2 = new Image();
-          //image2.src = yo;
-
-          /*Tesseract.recognize(
-            'https://tesseract.projectnaptha.com/img/eng_bw.png',
-            'eng',
-            { logger: m => console.log(m) }
-          ).then(({ data: { text } }) => {
-            console.log(text);
-          });*/
-
           Tesseract.recognize(
-            canvas,
+			canvas,
             'eng',
             { logger: m => console.log(m) }
           ).then(({ data: { text } }) => {
             console.log(text);
           });
-
-          /*chrome.runtime.sendMessage({
-              action: "translate",
-              image2: canvas
-            }, function(response) {
-              console.log('yeayeayea');
-              });*/
 /*
           Tesseract.recognize(image)
             .then(function(result) {
