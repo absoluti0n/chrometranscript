@@ -1,39 +1,26 @@
-/*chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action == "capture_screenshot") {
-    const { top, left, height, width } = request;
+var searchInput;
+var searchButton;
 
-    chrome.tabs.captureVisibleTab({ format: "png" }, function(screenshotUrl) {
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
- 
-      const image = new Image();
-      image.src = screenshotUrl;
+// Function to search the page with the specified text
 
-      image.onload = function() {
-        canvas.width = width;
-        canvas.height = height;
-        context.drawImage(image, left, top, width, height, 0, 0, width, height);
-        sendResponse({
-          screenshotUrl: canvas.toDataURL()
-        });
-      };
-    });
+function searchPage(textToSearch) {
+  // Get references to the search input and button elements
+  searchInput = document.querySelector("input[name='searchTerm']");
+  searchButton = document.querySelector("input[type='submit']");
+
+  // Check if both elements are found
+  if (searchInput && searchButton) {
+    // Input the search term in the input element
+    searchInput.value = textToSearch;
+
+    // Click the search button
+    searchButton.click();
+
+    return "Search performed for: " + textToSearch;
+  } else {
+    return "Error: Could not find search input or button on page.";
   }
-  return true;
-});
-
-/*chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "capture_screenshot") {
-    const { top, left, height, width } = request;
-    console.log("yo");
-    sendResponse({
-      screenshotUrl: "yo"
-    });
-  }
-});*/
-//import * as module from './module/tesseract.min.js';
-//import * as module2 from './module/worker.min.js';
-//import { createWorker } from './module/tesseract.min.js';
+};
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
@@ -43,61 +30,124 @@ chrome.runtime.onMessage.addListener(
         console.log("ça marche");
         var image = request.image;
         image.src = dataUrl;
-        /*var canvas = document.createElement("canvas");
-        canvas.width = request.width;
-        canvas.height = request.height;
-        var context = canvas.getContext("2d");
-        context.drawImage(image, request.left, request.top, request.width, request.height, 0, 0, request.width, request.height);
-        sendResponse({screenshot: canvas.toDataURL("image/png")});*/
         sendResponse({screenshot: dataUrl})
       });
     return true;  
     }
 });
 
-/*chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    if (request.action == "translate") {
-        console.log('tesseract à toi de jouer');
-        var image2 = request.image2;
-
-          Tesseract.recognize(image2)
-            .then(function(result) {
-              console.log(result.text);
-              sendResponse({translation: result})
-            })
-            .catch(function(error) {
-              console.error(error);
-            });
-
-
-    return true;  
-    }
-
-}
-
-);*/
-
-
-/*chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    if (request.action === "capture")
-      sendResponse({success: "reussi"});
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === "getTabId") {
+    chrome.tabs.query({}, function(tabs) {
+      for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].url.startsWith("https://datagalaxy-test.liebherr.i")) {
+          var tabId = tabs[i].id;
+          console.log("Tab with URL starting with 'https://datagalaxy-test.liebherr.i' is open, with ID: " + tabId);
+		  chrome.tabs.update(tabId, { active: true });
+          sendResponse({ tabId: tabId });
+		  
+		  	chrome.runtime.sendMessage({ greeting: "Hello from background script" }, function(response) {
+				console.log(response.farewell);
+			});
+          return true; // This will indicate that the response function will only be called once
+        }
+      }
+      sendResponse({ tabId: "no" });
+      return true;
+    });
+    return true; // This will indicate that the response will be sent asynchronously
   }
-);*/
+});
 
-/*chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-        //console.log(request)
-        chrome.tabs.captureVisibleTab(
-            null,
-            {},
-            function(dataUrl)
-            {
-                sendResponse({imgSrc:dataUrl});
-            }
-        );
+chrome.runtime.onMessage.addListener(function(request, sender) {
+	if (request.action === "search") {
+		/*
+		chrome.scripting.executeScript({
+			target: {tabId: request.tabId, text: request.msg},
+			files: ['scr/script1.js']
+		});*/
+		
+		//chrome.tabs.update(request.tabId, { active: true });
+		
+		/*searchPage(request.textToSearch).then(
+			console.log("ça y est fréro on a gagné");
+		)*/
+		
+		/*searchInput = document.querySelector("input[name='searchTerm']");
+		searchButton = document.querySelector("input[type='submit']");
+		
+		if (searchInput && searchButton) {
+			// Input the search term in the input element
+			searchInput.value = request.textToSearch;
 
-        return true;
-    }
-);*/
+			// Click the search button
+			searchButton.click();
+
+			return "Search performed for: " + textToSearch;
+		  } else {
+			return "Error: Could not find search input or button on page.";
+		  }*/
+
+		return true;
+	}
+});
+
+
+
+/*chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action == "getTabId") {
+	console.log("yea");
+    chrome.tabs.query({}, async function(tabs) {
+      for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].url.startsWith("https://datagalaxy-test.liebherr.i")) {
+          var tabId = tabs[i].id;
+          console.log("Tab with URL starting with 'https://datagalaxy-test.liebherr.i' is open, with ID: " + tabId);
+          sendResponse({tabId: tabId});
+          return true;
+        } 
+      }
+    });
+  return true;
+  }
+});
+
+/*chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === "getTabId") {
+	console.log("yea");
+		chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+		  var currentTab = tabs[0];
+		  var currentTabUrl = currentTab.url;
+		  console.log(currentTabUrl);
+		});
+  }
+});*/
+
+/*function searchPage(searchTerm) {
+  var searchInput = document.querySelector("input[name='searchTerm']");
+  var searchButton = document.querySelector("input[type='submit']");
+
+  if (searchInput && searchButton) {
+    searchInput.value = searchTerm;
+    searchButton.click();
+    return "Search performed for: " + searchTerm;
+  } else {
+    return "Error: Could not find search input or button on page.";
+  }
+}*/
+
+/*function searchPage(tabId, searchTerm) {
+  chrome.tabs.executeScript(tabId, {
+    code: `
+      var searchInput = document.querySelector("input[name='searchTerm']");
+      var searchButton = document.querySelector("input[type='submit']");
+
+      if (searchInput && searchButton) {
+        searchInput.value = "${searchTerm}";
+        searchButton.click();
+        console.log("Search performed for: ${searchTerm}");
+      } else {
+        console.error("Error: Could not find search input or button on page.");
+      }
+    `
+  });
+}*/

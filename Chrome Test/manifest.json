@@ -6,7 +6,8 @@
     "activeTab",
     "declarativeContent",
     "storage",
-    "tabs"
+    "tabs",
+	"scripting"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -16,8 +17,11 @@
   },
   "content_scripts": [
     {
-      "js": ["content.js", "./module/tesseract.min.js"],
+      "js": ["content.js", "./module/tesseract.min.js", "./scr/script1.js"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "content_security_policy": {
+	  "extension_pages": "default-src 'self' 'wasm-unsafe-eval'; script-src 'self' 'wasm-unsafe-eval'; object-src 'self' 'wasm-unsafe-eval'; img-src 'self' 'wasm-unsafe-eval'; worker-src 'self' 'wasm-unsafe-eval'"
+  }
 }

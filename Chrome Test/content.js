@@ -1,9 +1,6 @@
-/*var script = document.createElement("script");
-script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@v2.0.0-beta.2/dist/tesseract.min.js";
-document.head.appendChild(script);*/
-
 var isAltDown = false;
 var rectangleDiv = null;
+var tesseractisdone = false;
 
 document.addEventListener("mousedown", function(event) {
       if (event.altKey) {
@@ -63,19 +60,6 @@ document.addEventListener("mousedown", function(event) {
           var width = Math.abs(endX - startX);
           console.log("top:", top, "left:", left, "height:", height, "width:", width);
 
-          /*chrome.tabs.captureVisibleTab({format: "png"}, function(screenshotUrl) {
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
-
-            const image = new Image();
-            image.src = screenshotUrl;
-
-            image.onload = function() {
-              canvas.width = width;
-              canvas.height = height;
-              context.drawImage(image, left, top, width, height, 0, 0, width, height);
-              yo = canvas.toDataURL()
-            };*/
           const image = new Image()
 
           chrome.runtime.sendMessage({
@@ -97,14 +81,12 @@ document.addEventListener("mousedown", function(event) {
 
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d");
-          var yo;
 
           image.onload = function() {
             canvas.width = width;
             canvas.height = height;
             context.drawImage(image, left, top, width, height, 0, 0, width, height);
             yo = canvas.toDataURL()
-            console.log(yo);
 
             console.log('%c ','font-size: 300px; background: url(' + canvas.toDataURL() + ') no-repeat;');
 
@@ -114,49 +96,128 @@ document.addEventListener("mousedown", function(event) {
             document.body.appendChild(link);*/
           };
 
-          //console.log(yo);
-
-
-          //var image2 = new Image();
-          //image2.src = yo;
-
-          /*Tesseract.recognize(
-            'https://tesseract.projectnaptha.com/img/eng_bw.png',
-            'eng',
-            { logger: m => console.log(m) }
-          ).then(({ data: { text } }) => {
-            console.log(text);
-          });*/
-
-          Tesseract.recognize(
-            canvas,
-            'eng',
-            { logger: m => console.log(m) }
-          ).then(({ data: { text } }) => {
-            console.log(text);
-          });
-
-          /*chrome.runtime.sendMessage({
-              action: "translate",
-              image2: canvas
-            }, function(response) {
-              console.log('yeayeayea');
-              });*/
-/*
-          Tesseract.recognize(image)
+		var textToSearch = "";
+		
+        Tesseract.recognize(canvas,'eng',{ logger: m => console.log(m) })
+			.then(({ data: { text } }) => {
+				console.log(text)
+				textToSearch = text;
+				tesseractisdone = true;
+			})
+						
+          /*Tesseract.recognize(canvas)
             .then(function(result) {
-              console.log(result.text);
+              textToSearch = result.text;
+			  console.log(textToSearch);
             })
             .catch(function(error) {
               console.error(error);
+			  return;
             });*/
 
+/*		chrome.runtime.sendMessage({action: "getTabId"}, function(response) {
+		  console.log("Tab ID: " + response.tabId);
+		  
+		  if (response.tabId === undefined || response.tabId === "no") {
+			  //create tab and open DG on the search page
+		  }
+		  
+		  //chrome.runtime.sendMessage({action: "DGSearch", msg: textToSearch}, function() {
+			searchPage(response.tabId, textToSearch);  
+			  
+		  //});
+		});	*/
+		
+		try {
+		  chrome.runtime.sendMessage({action: "getTabId"}, function(response) {
+			console.log("Tab ID: " + response.tabId);
+			
+			if (response.tabId === undefined || response.tabId === "no") {
+			  //create tab and open DG on the search page
+			} else {
+				console.log("yahou");
+			}
+			
+		var startTime = Date.now();
 
-          /*var image2 = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  // here is the most important part because if you dont replace you will get a DOM 18 exception.
-          window.location.href=image2; // it will save locally*/
+		function checkVariable() {
+		  if (tesseractisdone) {
+			console.log("Variable is now true");
+						
+			/*chrome.runtime.sendMessage({action: "search", msg: textToSearch, tabId: response.tabId}, function(response) {
+				console.log("alleluia");
+			});*/
+			
+			/*searchInput = document.querySelector("input[name='searchTerm']");
+			searchButton = document.querySelector("input[type='submit']");
+			
+			//var searchBar = document.querySelector('input[type="searchTerm"]');
+			//var searchBar = document.querySelector(".mat-input-element mat-form-field-autofill-control no-filters ng-untouched ng-pristine ng-valid cdk-text-field-autofill-monitored");	
+ 
+			// Check if both elements are found
+			if (searchInput && searchButton) {
+			// Input the search term in the input element
+			console.log("on a trouvé searchinput & searchbutton");
+			searchInput.value = textToSearch;
+
+			// Click the search button
+			searchButton.click();
+
+			return "Search performed for: " + textToSearch;
+			} else {
+			return "Error: Could not find search input or button on page.";
+			}		*/	
+			
+			chrome.runtime.onMessage.addListener(
+			  function(request, sender, sendResponse) {
+				console.log(request.greeting);
+				sendResponse({ farewell: "Goodbye from content script" });
+			  });
+			
+			return;
+		  }
+		  
+		  if (Date.now() - startTime > 5000) {
+			console.error("Timed out waiting for variable to be true");
+			return;
+		  }
+		  
+		  setTimeout(checkVariable, 100);
+		}
+
+		checkVariable();
+		
+
+		  });
+		} catch (e) {
+		  console.error(e);
+		}
+
+		if (chrome.runtime.lastError) {
+		  console.error("Error sending message: " + chrome.runtime.lastError.message);
+		}		
+		
+		//(if tab id = no then create tab go to DG and tab id = tab id, else) go directly to search
 
           document.removeEventListener("mouseup", mouseUpListener);
+		  tesseractisdone = false;
 
           });
         };
 });
+
+/*
+function searchPage(tabId, searchTerm) {
+  var searchInput = document.querySelector("input[name='searchTerm']");
+  var searchButton = document.querySelector("input[type='submit']");
+
+  if (searchInput && searchButton) {
+    searchInput.value = searchTerm;
+    searchButton.click();
+    return "Search performed for: " + searchTerm;
+  } else {
+    return "Error: Could not find search input or button on page.";
+  }
+};
+*/
+
